@@ -7,7 +7,21 @@
         mc:Ignorable="d"
         Title="Screen Time" Height="450" Width="800">
     <Grid>
-        <DataGrid x:Name="ProcessesGrid" Margin="10,118,10,10"/>
+        <DataGrid x:Name="ProcessesGrid" Margin="10,118,10,10" AutoGenerateColumns="False" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Process Name" Binding="{Binding ProcessName}"/>
+                <DataGridTextColumn Header="Is Running" Binding="{Binding IsRunning}" />
+                <DataGridTextColumn Header="Is Active" Binding="{Binding IsActive}" />
+                <DataGridTextColumn Header="Total Time" Binding="{Binding TotalTime}" />
+            </DataGrid.Columns>
+            <DataGrid.RowDetailsTemplate>
+                <DataTemplate>
+                    <DataGrid ItemsSource="{Binding Processes}" Margin="10" IsReadOnly="True"/>
+                </DataTemplate>
+            </DataGrid.RowDetailsTemplate>
+        </DataGrid>
+        <Label Content="Total Time:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="66"/>
+        <Label Content="" x:Name="lblTotalTime" HorizontalAlignment="Left" Margin="81,10,0,0" VerticalAlignment="Top" Width="77"/>
 
 
     </Grid>

@@ -15,12 +15,12 @@ namespace ScreenTime
         private readonly SessionSwitchEventHandler SessionSwitchEventHandler;
         private readonly ProcessManager ProcessManager;
         private bool IsSessionLocked { get; set; }
-        private List<WindowsProcess> Processes { get; set; }
-        public IEnumerable<WindowsProcess> WindowsProcesses { get { return Processes; } }
+        private List<ProcessRollup> ProcessRollups { get; set; }
+        public IEnumerable<ProcessRollup> WindowsProcessRollups { get { return ProcessRollups; } }
 
         public Processor()
         {
-            Processes = LoadInternalProcesses();
+            ProcessRollups = LoadInternalProcesses();
             IsSessionLocked = false;
             ProcessManager = new ProcessManager();
             SessionSwitchEventHandler = new SessionSwitchEventHandler(SystemEvents_SessionSwitch);
@@ -41,10 +41,12 @@ namespace ScreenTime
 
         public void Run()
         {
+            var processes = ProcessRollups.SelectMany(w => w.Processes);
+
             if (IsSessionLocked == true)
             {
                 // end all processes that are running
-                foreach (var process in Processes)
+                foreach (var process in processes)
                 {
                     process.SetNotActive();
                 }
@@ -55,9 +57,9 @@ namespace ScreenTime
             var windowsProcesses = ProcessManager.GetAllProcesses();
 
             // check to see if any processes were closed
-            foreach (var process in Processes)
+            foreach (var process in processes)
             {
-                if (process.IsActive && windowsProcesses.Any(w => w.Id == process.Id) == false)
+                if (process.IsActive && windowsProcesses.Any(w => w.Key == process.Key) == false)
                 {
                     // process was closed, deactivate it
                     process.IsRunning = false;
@@ -67,7 +69,15 @@ namespace ScreenTime
 
             foreach (var process in windowsProcesses)
             {
-                var foundProcess = Processes.FirstOrDefault(w => w.Id == process.Id);
+                var rollup = ProcessRollups.FirstOrDefault(w => string.Equals(w.ProcessName, process.ProcessName, StringComparison.OrdinalIgnoreCase));
+
+                if (rollup == null)
+                {
+                    rollup = new ProcessRollup(process.ProcessName);
+                    ProcessRollups.Add(rollup);
+                }
+
+                var foundProcess = rollup.Processes.FirstOrDefault(w => w.Key == process.Key);
 
                 if (foundProcess == null)
                 {
@@ -78,7 +88,7 @@ namespace ScreenTime
                         process.SetActive();
                     }
 
-                    Processes.Add(process);
+                    rollup.Add(process);
                 }
                 else
                 {
@@ -95,7 +105,7 @@ namespace ScreenTime
             }
         }
 
-        private void SaveInternalProcesses(List<WindowsProcess> processes)
+        private void SaveInternalProcesses(List<ProcessRollup> processes)
         {
             var path = GetFileLocation();
             var directory = Path.GetDirectoryName(path);
@@ -115,32 +125,32 @@ namespace ScreenTime
             return string.Format(ConfigurationManager.AppSettings["LogFileLocation"], Environment.UserName, "ScreenTime.json");
         }
 
-        private List<WindowsProcess> LoadInternalProcesses()
+        private List<ProcessRollup> LoadInternalProcesses()
         {
             if (!File.Exists(GetFileLocation()))
             {
-                return new List<WindowsProcess>();
+                return new List<ProcessRollup>();
             }
 
             var text = File.ReadAllText(GetFileLocation());
 
             if (string.IsNullOrEmpty(text))
             {
-                return new List<WindowsProcess>();
+                return new List<ProcessRollup>();
             }
 
-            return JsonConvert.DeserializeObject<List<WindowsProcess>>(text);
+            return JsonConvert.DeserializeObject<List<ProcessRollup>>(text);
         }
 
         public void Dispose()
         {
-            foreach (var process in Processes)
+            foreach (var process in ProcessRollups.SelectMany(w => w.Processes))
             {
                 process.IsRunning = false;
                 process.SetNotActive();
             }
 
-            SaveInternalProcesses(Processes);
+            SaveInternalProcesses(ProcessRollups);
 
             SystemEvents.SessionSwitch -= SessionSwitchEventHandler;
         }

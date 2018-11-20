@@ -39,16 +39,17 @@ namespace ScreenTime
                 Interval = 5000
             };
             Timer.Elapsed += TimerElapsed;
-            Timer.Start();           \
+            Timer.Start();           
             
 
-//            Screen Time
-//Chromes secondary Id needs to be the window title, that will tell us which tab is active
-//Applications Used
-//Time Worked Today
-//Day Started?
-//Day Ended?
-//Breaks ?
+            // A(pplication) U(sage) R(ecording) A(pplication)
+            // Chromes secondary Id needs to be the window title, that will tell us which tab is active
+            // Applications Used
+            // Time Worked Today
+            // Day Started?
+            // Day Ended?
+            // Breaks ?
+
         }
 
         private void TimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -65,8 +66,8 @@ namespace ScreenTime
 
             this.Dispatcher.Invoke(() =>
             {
-                this.ProcessesGrid.ItemsSource = null;
-                this.ProcessesGrid.ItemsSource = Processor.WindowsProcesses;
+                this.ProcessesGrid.ItemsSource = Processor.WindowsProcessRollups;
+                this.lblTotalTime.Content = Processor.WindowsProcessRollups.Aggregate(new TimeSpan(), (current, next) => current + next.TotalTime).ToString();
                 this.ProcessesGrid.Items.Refresh();
             });
         }

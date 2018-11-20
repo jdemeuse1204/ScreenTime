@@ -20,14 +20,11 @@ namespace ScreenTime.Managers
             var activeWindowId = WindowsApi.GetWindowProcessId(activeWindowHandle);
             return Process.GetProcesses().Where(w => !string.IsNullOrEmpty(w.MainWindowTitle)).Select(w => 
             {
-                return new WindowsProcess
+                return new WindowsProcess(w.MainWindowTitle, w.ProcessName, w.Id)
                 {
                     IsActive = activeWindowId == w.Id,
                     Handle = w.MainWindowHandle,
-                    Id = w.Id,
-                    ProcessName = w.ProcessName,
                     StartTime = w.StartTime,
-                    Title = w.MainWindowTitle,
                     IsRunning = true
                 };
             });

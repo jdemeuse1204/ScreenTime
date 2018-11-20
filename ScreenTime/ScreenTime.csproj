@@ -64,8 +64,10 @@
     <Compile Include="Managers\ProcessManager.cs" />
     <Compile Include="Processor.cs" />
     <Compile Include="Types\ClockPeriod.cs" />
+    <Compile Include="Types\ProcessRollup.cs" />
     <Compile Include="Types\WindowsProcess.cs" />
     <Compile Include="Utilities\WindowsApi.cs" />
+    <Compile Include="ViewModels\RecorderViewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
