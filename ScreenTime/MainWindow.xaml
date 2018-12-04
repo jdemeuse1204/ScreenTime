@@ -7,7 +7,29 @@
         mc:Ignorable="d"
         Title="Screen Time" Height="450" Width="800">
     <Grid>
-        <DataGrid x:Name="ProcessesGrid" Margin="10,118,10,10" AutoGenerateColumns="False" IsReadOnly="True">
+        <Label HorizontalAlignment="Left" Margin="10,141,0,0" VerticalAlignment="Top" Width="97" Content="Processes" HorizontalContentAlignment="Center"/>
+        <ListView Margin="10,172,685,10" ItemsSource="{Binding Processes, Mode=OneWay}" SelectedItem="{Binding SelectedProcess}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <WrapPanel>
+                        <TextBlock Text="{Binding ProcessName}" />
+                    </WrapPanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <Canvas Margin="112,141,10,10">
+            <Label Width="670" Height="35" Content="{Binding SelectedProcess.ProcessName}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="16"/>
+            <ListView Height="233" Width="670" Canvas.Top="35" ItemsSource="{Binding SelectedProcess.Processes}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <WrapPanel>
+                            <TextBlock Text="{Binding ProcessName}" />
+                        </WrapPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Canvas>
+        <!--<DataGrid x:Name="ProcessesGrid" Margin="10,118,10,10" AutoGenerateColumns="False" IsReadOnly="True" ItemsSource="{Binding Processes, Mode=OneWay}" Visibility="Collapsed">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Process Name" Binding="{Binding ProcessName}"/>
                 <DataGridTextColumn Header="Is Running" Binding="{Binding IsRunning}" />
@@ -19,9 +41,10 @@
                     <DataGrid ItemsSource="{Binding Processes}" Margin="10" IsReadOnly="True"/>
                 </DataTemplate>
             </DataGrid.RowDetailsTemplate>
-        </DataGrid>
-        <Label Content="Total Time:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="66"/>
-        <Label Content="" x:Name="lblTotalTime" HorizontalAlignment="Left" Margin="81,10,0,0" VerticalAlignment="Top" Width="77"/>
+        </DataGrid>-->
+        <Label Content="Day Start:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="66"/>
+        <Label Content="{Binding DayStart}" HorizontalAlignment="Left" Margin="81,10,0,0" VerticalAlignment="Top" Width="147" Height="26"/>
+        <Button Content="Button" HorizontalAlignment="Left" Margin="707,10,0,0" VerticalAlignment="Top" Width="75"/>
 
 
     </Grid>
