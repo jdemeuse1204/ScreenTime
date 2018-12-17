@@ -1,4 +1,5 @@
 ﻿using ScreenTime.Managers;
+using ScreenTime.Types;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -39,8 +40,8 @@ namespace ScreenTime
                 Interval = 5000
             };
             Timer.Elapsed += TimerElapsed;
-            Timer.Start();           
-            
+            Timer.Start();
+
 
             // A(pplication) U(sage) R(ecording) A(pplication)
             // Chromes secondary Id needs to be the window title, that will tell us which tab is active
@@ -50,6 +51,18 @@ namespace ScreenTime
             // Day Ended?
             // Breaks ?
 
+            this.ProcessesGrid.SelectionChanged += ProcessesGrid_SelectionChanged;
+        }
+
+        private void ProcessesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is DataGrid dataGrid && dataGrid.SelectedItem is ProcessRollup processRollup)
+            {
+                this.ProcessDetailGrid.ItemsSource = processRollup.Processes;
+                return;
+            }
+
+            this.ProcessDetailGrid.ItemsSource = null;
         }
 
         private void TimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
