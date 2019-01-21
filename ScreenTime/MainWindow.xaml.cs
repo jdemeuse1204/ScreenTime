@@ -1,10 +1,15 @@
-﻿using ScreenTime.Managers;
+﻿using ScreenTime.Extensions;
+using ScreenTime.Managers;
+using ScreenTime.Types;
+using ScreenTime.ViewModel;
 using System;
 using System.ComponentModel;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace ScreenTime
 {
@@ -34,6 +39,15 @@ namespace ScreenTime
             Timer.Start();
 
 
+
+            using (SqlConnection c = new SqlConnection("Data Source=(LocalDB)\\v11.0;" +
+            "AttachDbFilename=" + AppDomain.CurrentDomain.BaseDirectory + "Aura.mdf;" +
+            "Integrated Security=True"))
+            {
+                c.Open();
+
+            }
+
             // A(pplication) U(sage) R(ecording) A(ssitant)
             // Chromes secondary Id needs to be the window title, that will tell us which tab is active
             // Applications Used
@@ -47,13 +61,13 @@ namespace ScreenTime
 
         private void ProcessesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (sender is DataGrid dataGrid && dataGrid.SelectedItem is ProcessRollup processRollup)
-            {
-                this.ProcessDetailGrid.ItemsSource = processRollup.Processes;
-                return;
-            }
+            //if (sender is DataGrid dataGrid && dataGrid.SelectedItem is ProcessRollup processRollup)
+            //{
+            //    this.ProcessDetailGrid.ItemsSource = processRollup.Processes;
+            //    return;
+            //}
 
-            this.ProcessDetailGrid.ItemsSource = null;
+            //this.ProcessDetailGrid.ItemsSource = null;
         }
 
         private void TimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -80,7 +94,7 @@ namespace ScreenTime
                 this.ViewModel.TotalTime = Processor.WindowsProcessRollups.Aggregate(new TimeSpan(), (current, next) => current + next.TotalTime).ToString();
             });
         }
-        
+
         protected override void OnClosing(CancelEventArgs e)
         {
             Timer.Dispose();
