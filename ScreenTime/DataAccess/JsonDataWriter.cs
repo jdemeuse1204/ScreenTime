@@ -1,25 +1,37 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ScreenTime.DataAccess
 {
     public class JsonDataWriter
     {
         private readonly string FileNameAndPath;
-        
-        public JsonDataWriter(string fileNameAndPath)
+        public JsonDataWriter(string filePath, string fileName)
         {
-            FileNameAndPath = fileNameAndPath;
+            FileNameAndPath = Path.Combine(filePath, fileName);
+
+            if (Directory.Exists(filePath) == false)
+            {
+                Directory.CreateDirectory(filePath);
+            }
         }
 
-        public bool Remove<T>(Func<T, bool> expression) where T : class
+        public void Remove<T>(Func<T, bool> expression) where T : class
         {
-            var itemsToSave = new JsonDataIterator<T>(FileNameAndPath).Where(w => expression(w) == false);
+            using (var iterator = new JsonDataIterator<T>(FileNameAndPath))
+            {
+                var itemsToSave = iterator.Where(w => expression(w) == false);
 
+                Add(itemsToSave);
+            }
+        }
 
+        public void Add<T>(IEnumerable<T> items) where T : class
+        {
+            File.WriteAllLines(FileNameAndPath, items.Select(JsonConvert.SerializeObject));
         }
     }
 }

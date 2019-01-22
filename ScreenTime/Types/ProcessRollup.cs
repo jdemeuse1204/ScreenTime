@@ -9,9 +9,14 @@ namespace ScreenTime.Types
     public class ProcessRollup
     {
         public ProcessRollup(string processName)
+            :this(processName, new List<WindowsProcess>())
+        {
+        }
+
+        public ProcessRollup(string processName, IEnumerable<WindowsProcess> windowsProcesses)
         {
             ProcessName = processName;
-            Processes = new List<WindowsProcess>();
+            Processes = windowsProcesses;
         }
 
         public string ProcessName { get; private set; }

@@ -1,10 +1,7 @@
 ﻿using ScreenTime.Extensions;
-using ScreenTime.Managers;
-using ScreenTime.Types;
 using ScreenTime.ViewModel;
 using System;
 using System.ComponentModel;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,16 +34,6 @@ namespace ScreenTime
             };
             Timer.Elapsed += TimerElapsed;
             Timer.Start();
-
-
-
-            using (SqlConnection c = new SqlConnection("Data Source=(LocalDB)\\v11.0;" +
-            "AttachDbFilename=" + AppDomain.CurrentDomain.BaseDirectory + "Aura.mdf;" +
-            "Integrated Security=True"))
-            {
-                c.Open();
-
-            }
 
             // A(pplication) U(sage) R(ecording) A(ssitant)
             // Chromes secondary Id needs to be the window title, that will tell us which tab is active

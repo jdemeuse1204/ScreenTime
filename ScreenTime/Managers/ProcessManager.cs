@@ -1,23 +1,28 @@
-﻿using Newtonsoft.Json;
+﻿using ScreenTime.Repositories;
 using ScreenTime.Types;
 using ScreenTime.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Automation;
 
 namespace ScreenTime.Managers
 {
     public class ProcessManager
     {
-        public IEnumerable<WindowsProcess> GetAllProcesses()
+        private readonly ProcessRepository ProcessRepository;
+
+        public ProcessManager()
+        {
+            ProcessRepository = new ProcessRepository();
+        }
+
+        public IEnumerable<WindowsProcess> GetCurrentProcesses()
         {
             var activeWindowHandle = WindowsApi.GetforegroundWindow();
             var activeWindowId = WindowsApi.GetWindowProcessId(activeWindowHandle);
+
             return Process.GetProcesses().Where(w => !string.IsNullOrEmpty(w.MainWindowTitle)).Select(w => 
             {
                 return new WindowsProcess(w.MainWindowTitle, w.ProcessName, w.Id)
@@ -32,15 +37,12 @@ namespace ScreenTime.Managers
 
         public IEnumerable<WindowsProcess> GetLoggedProcesses()
         {
-            var path = @"C:\Users\JamesDeMuse\Desktop\ScreenTime.txt";
-            var todaysProcesses = string.Empty;
+            return ProcessRepository.LoadSavedProcesses();
+        }
 
-            if (File.Exists(path))
-            {
-                todaysProcesses = File.ReadAllText(path);
-            }
-    
-            return JsonConvert.DeserializeObject<IEnumerable<WindowsProcess>>($"[{todaysProcesses}]");
+        public void SaveProcesses(IEnumerable<WindowsProcess> processes)
+        {
+            ProcessRepository.Save(processes);
         }
 
         private string GetChromeTabs(Process process)

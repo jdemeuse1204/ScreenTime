@@ -1,30 +1,60 @@
-﻿using Microsoft.Win32;
-using Newtonsoft.Json;
+﻿using Gma.System.MouseKeyHook;
+using Microsoft.Win32;
 using ScreenTime.Managers;
 using ScreenTime.Types;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
-using System.IO;
 using System.Linq;
+using System.Windows.Forms;
 
 namespace ScreenTime
 {
     public class Processor : IDisposable
     {
+        private IKeyboardMouseEvents m_GlobalHook;
         private readonly SessionSwitchEventHandler SessionSwitchEventHandler;
         private readonly ProcessManager ProcessManager;
+        private readonly RollupManager RollupManager;
+        private DateTime LastActivityDate { get; set; }
+
         private bool IsSessionLocked { get; set; }
         private List<ProcessRollup> ProcessRollups { get; set; }
         public IEnumerable<ProcessRollup> WindowsProcessRollups { get { return ProcessRollups; } }
 
         public Processor()
         {
-            ProcessRollups = LoadInternalProcesses();
-            IsSessionLocked = false;
+            RollupManager = new RollupManager();
             ProcessManager = new ProcessManager();
+
+            var savedData = ProcessManager.GetLoggedProcesses();
+
+            ProcessRollups = RollupManager.RollupProcesses(savedData).ToList();
+            IsSessionLocked = false;
             SessionSwitchEventHandler = new SessionSwitchEventHandler(SystemEvents_SessionSwitch);
             SystemEvents.SessionSwitch += SessionSwitchEventHandler;
+
+            m_GlobalHook = Hook.GlobalEvents();
+
+            m_GlobalHook.MouseDownExt += GlobalHookMouseDownExt;
+            m_GlobalHook.KeyPress += GlobalHookKeyPress;
+            m_GlobalHook.MouseMove += M_GlobalHook_MouseMove;
+
+            LastActivityDate = DateTime.Now;
+        }
+
+        private void M_GlobalHook_MouseMove(object sender, MouseEventArgs e)
+        {
+            LastActivityDate = DateTime.Now;
+        }
+
+        private void GlobalHookKeyPress(object sender, KeyPressEventArgs e)
+        {
+            LastActivityDate = DateTime.Now;
+        }
+
+        private void GlobalHookMouseDownExt(object sender, MouseEventExtArgs e)
+        {
+            LastActivityDate = DateTime.Now;
         }
 
         private void SystemEvents_SessionSwitch(object sender, SessionSwitchEventArgs e)
@@ -41,6 +71,11 @@ namespace ScreenTime
 
         public void Run()
         {
+            if ((LastActivityDate - DateTime.Now).TotalMinutes >= 5)
+            {
+                // user is away
+            }
+
             var processes = ProcessRollups.SelectMany(w => w.Processes);
 
             if (IsSessionLocked == true)
@@ -50,11 +85,11 @@ namespace ScreenTime
                 {
                     process.SetNotActive();
                 }
-                
+
                 return;
             }
 
-            var windowsProcesses = ProcessManager.GetAllProcesses();
+            var windowsProcesses = ProcessManager.GetCurrentProcesses();
 
             // check to see if any processes were closed
             foreach (var process in processes)
@@ -105,52 +140,17 @@ namespace ScreenTime
             }
         }
 
-        private void SaveInternalProcesses(List<ProcessRollup> processes)
-        {
-            var path = GetFileLocation();
-            var directory = Path.GetDirectoryName(path);
-
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-
-            File.WriteAllText(GetFileLocation(), JsonConvert.SerializeObject(processes));
-        }
-
-        private string GetFileLocation()
-        {
-            var x = ConfigurationManager.AppSettings["LogFileLocation"];
-
-            return string.Format(ConfigurationManager.AppSettings["LogFileLocation"], Environment.UserName, "ScreenTime.json");
-        }
-
-        private List<ProcessRollup> LoadInternalProcesses()
-        {
-            if (!File.Exists(GetFileLocation()))
-            {
-                return new List<ProcessRollup>();
-            }
-
-            var text = File.ReadAllText(GetFileLocation());
-
-            if (string.IsNullOrEmpty(text))
-            {
-                return new List<ProcessRollup>();
-            }
-
-            return JsonConvert.DeserializeObject<List<ProcessRollup>>(text);
-        }
-
         public void Dispose()
         {
-            foreach (var process in ProcessRollups.SelectMany(w => w.Processes))
+            var windowsProcesses = ProcessRollups.SelectMany(w => w.Processes);
+
+            foreach (var process in windowsProcesses)
             {
                 process.IsRunning = false;
                 process.SetNotActive();
             }
 
-            SaveInternalProcesses(ProcessRollups);
+            ProcessManager.SaveProcesses(windowsProcesses);
 
             SystemEvents.SessionSwitch -= SessionSwitchEventHandler;
         }

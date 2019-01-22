@@ -1,11 +1,9 @@
-﻿using ScreenTime.Types;
+﻿using ScreenTime.Extensions;
+using ScreenTime.Managers;
+using ScreenTime.Types;
 using ScreenTime.ViewModel.Base;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ScreenTime.ViewModel
 {
@@ -18,10 +16,5 @@ namespace ScreenTime.ViewModel
         public ProcessRollup SelectedProcess { get; set; }
 
         public DateTime DayStart { get; set; }
-
-        public MainViewModel()
-        {
-            Processes = new ObservableCollection<ProcessRollup>();
-        }
     }
 }
